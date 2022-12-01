@@ -1,22 +1,38 @@
 import Message from "../models/message.model.js";
 
-async function getMessage(req, res) {
-  const productId = req.params.id;
-
-  const product = await Message.findById(productId);
-  return res.status(200).send({ product });
-}
-
 async function createMessage(req, res) {
+  const data = Object.keys(req.body);
+  const data2 = Object.values(req.body);
+
+  const errorData = [];
+
+  data2.forEach((element, i) => {
+    if (element.length === 0) {
+      errorData.push(data[i]);
+    }
+  });
+
+  if (errorData.length > 0) {
+    return res
+      .status(400)
+      .send({ success: false, error: `faltan los campos: ${errorData}` });
+  }
   try {
     const createdMessage = await Message.create({
-      userId: req.body.name,
-      message: req.body.price,
+      userId: req.body.userId,
+      message: req.body.message,
     });
-    return res.status(201).send({ response: createdMessage });
+    return res.status(201).send({ success: true });
   } catch (error) {
-    return res.status(500).send({ error });
+    return res.status(500).send({ success: false, error });
   }
 }
 
-export { getMessage, createMessage };
+async function deleteMessage(req, res) {
+  const messageId = req.params.messageId;
+
+  await Message.findByIdAndDelete(messageId);
+  return res.status(204).send();
+}
+
+export { createMessage, deleteMessage };
